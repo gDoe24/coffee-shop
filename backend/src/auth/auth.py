@@ -4,7 +4,7 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
-AUTH0_DOMAIN = 'fsnd-8.us.auth0.com'
+AUTH0_DOMAIN = 'fsnd-8.us'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'coffee'
 
@@ -51,7 +51,8 @@ def get_token_auth_header():
 
 
 '''
-@TODO implement check_permissions(permission, payload) method
+
+Done implement check_permissions(permission, payload) method
     @INPUTS
         permission: string permission (i.e. 'post:drink')
         payload: decoded jwt payload
