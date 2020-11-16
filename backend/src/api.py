@@ -9,14 +9,22 @@ from .auth.auth import AuthError, requires_auth
 
 app = Flask(__name__)
 setup_db(app)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
+@app.after_request
+def after_request(response):
+    response.headers.add('ACCESS-CONTROL-ALLOW-HEADERS',
+                            'Content-Type,Authorization,true')
+    response.headers.add('ACCESS-CONTROL-ALLOW-METHODS',
+                            'POST,GET,PATCH,DELETE,PUT')
+    return response
 '''
 @TODO uncomment the following line to initialize the datbase
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
 db_drop_and_create_all()
+
 
 ## ROUTES
 '''
@@ -123,7 +131,7 @@ def update_drink(drink_id):
 
 
 '''
-@TODO implement endpoint
+Done implement endpoint
     DELETE /drinks/<id>
         where <id> is the existing model id
         it should respond with a 404 error if <id> is not found
