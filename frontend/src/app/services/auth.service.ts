@@ -20,7 +20,7 @@ export class AuthService {
 
   constructor() { }
 
-  build_login_link(callbackPath = '') {
+  build_login_link(callbackPath = '/tabs/user-page') {
     let link = 'https://';
     link += this.url + '.auth0.com';
     link += '/authorize?';

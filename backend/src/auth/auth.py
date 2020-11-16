@@ -1,5 +1,6 @@
 import json
-from flask import request, _request_ctx_stack, abort
+from flask import Flask, request, jsonify, _request_ctx_stack, abort
+from flask_cors import cross_origin
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
@@ -75,6 +76,7 @@ Done implement check_permissions(permission, payload) method
 
 
 def check_permissions(permission, payload):
+    print(payload)
     if 'permissions' not in payload:
         abort(403)
 
