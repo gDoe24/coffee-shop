@@ -5,7 +5,7 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
-AUTH0_DOMAIN = 'fsnd-8.us'
+AUTH0_DOMAIN = 'fsnd-8.us.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'coffee'
 
@@ -38,17 +38,24 @@ def get_token_auth_header():
 
     auth = request.headers.get("Authorization", None)
     if not auth:
-        abort(401)
+        raise AuthError({
+                        'code': 'authorization_header_missing',
+                        'description': 'Authoriation header not found'
+                        }, 401)
 
     header_parts = auth.split(' ')
 
     if len(header_parts) != 2:
-        print('header parts')
-        abort(401)
+        raise AuthError({
+                        'code': 'invalid_header',
+                        'description': "header parts != 2"
+                        }, 401)
 
     elif header_parts[0].lower() != 'bearer':
-        print('bearer')
-        abort(401)
+        raise AuthError({
+                        'code': 'invalid_header',
+                        'description': 'header must start with Bearer'
+                        }, 401)
 
     return header_parts[1]
 
@@ -73,7 +80,7 @@ def check_permissions(permission, payload):
     if 'permissions' not in payload:
         abort(403)
 
-    if payload['permission'] != permission:
+    if permission not in payload['permissions']:
         abort(403)
 
     return True
@@ -96,18 +103,24 @@ DONE implement verify_decode_jwt(token) method
 
 
 def verify_decode_jwt(token):
-    jsonurl = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
+    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
     rsa_key = {}
-    for key in jwks["keys"]:
-        if key["kid"] == unverified_header["kid"]:
+    if 'kid' not in unverified_header:
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Authorization malformed.'
+        }, 401)
+
+    for key in jwks['keys']:
+        if key['kid'] == unverified_header['kid']:
             rsa_key = {
-                "kty": key["kty"],
-                "kid": key["kid"],
-                "use": key["use"],
-                "n": key["n"],
-                "e": key["e"]
+                'kty': key['kty'],
+                'kid': key['kid'],
+                'use': key['use'],
+                'n': key['n'],
+                'e': key['e']
             }
     if rsa_key:
         try:
@@ -116,26 +129,31 @@ def verify_decode_jwt(token):
                 rsa_key,
                 algorithms=ALGORITHMS,
                 audience=API_AUDIENCE,
-                issuer="https://"+AUTH0_DOMAIN+"/"
+                issuer='https://' + AUTH0_DOMAIN + '/'
             )
-        except jwt.ExpiredSignatureError:
-            raise AuthError({"code": "token_expired",
-                            "description": "token is expired"}, 401)
-        except jwt.JWTClaimsError:
-            raise AuthError({"code": "invalid_claims",
-                            "description":
-                                "incorrect claims,"
-                                "please check the audience and issuer"}, 401)
-        except Exception:
-            raise AuthError({"code": "invalid_header",
-                            "description":
-                                "Unable to parse authentication"
-                                " token."}, 401)
 
-        _request_ctx_stack.top.current_user = payload
-        return payload
-    raise AuthError({"code": "invalid_header",
-                    "description": "Unable to find appropriate key"}, 401)
+            return payload
+
+        except jwt.ExpiredSignatureError:
+            raise AuthError({
+                'code': 'token_expired',
+                'description': 'Token expired.'
+            }, 401)
+
+        except jwt.JWTClaimsError:
+            raise AuthError({
+                'code': 'invalid_claims',
+                'description': 'Incorrect claims. Please, check the audience and issuer.'
+            }, 401)
+        except Exception:
+            raise AuthError({
+                'code': 'invalid_header',
+                'description': 'Unable to parse authentication token.'
+            }, 400)
+    raise AuthError({
+                'code': 'invalid_header',
+                'description': 'Unable to find the appropriate key.'
+            }, 400)
 
 
 '''
