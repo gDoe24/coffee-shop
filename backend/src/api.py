@@ -169,6 +169,16 @@ def delete_drink(payload, drink_id):
 
 # Error Handling
 
+
+@app.errorhandler(AuthError)
+def invalid_claims(ex):
+    return jsonify({
+                    "success": False,
+                    "error": ex.status_code,
+                    "message": ex.error
+                    })
+
+
 @app.errorhandler(401)
 def unauthorized(error):
     return jsonify({
@@ -203,15 +213,6 @@ def unprocessable(error):
                     "error": 422,
                     "message": "Unprocessable"
                     }), 422
-
-
-@app.errorhandler(500)
-def server_error(error):
-    return jsonify({
-                    "success": False,
-                    "error": 500,
-                    "message": "Server Error"
-                    }), 500
 
 
 '''

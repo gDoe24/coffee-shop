@@ -76,7 +76,7 @@ Done implement check_permissions(permission, payload) method
 
 
 def check_permissions(permission, payload):
-    
+
     if 'permissions' not in payload:
         abort(403)
 
